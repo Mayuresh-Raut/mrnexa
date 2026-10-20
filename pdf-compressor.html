@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF compressor — Nexa Tools</title>
+<meta name="description" content="Compress PDF files in your browser, free, no upload to any server, no signup needed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root {
+    --ink: #101820;
+    --ink-soft: #4a5560;
+    --paper: #f7f8f6;
+    --card: #ffffff;
+    --line: #e3e6e1;
+    --accent: #1d6f5c;
+    --accent-soft: #e1f0eb;
+    --accent-strong: #0f4a3c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.6; }
+  header { display: flex; align-items: center; justify-content: space-between; max-width: 880px; margin: 0 auto; padding: 28px 24px 0; }
+  .brand { display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 20px; }
+  nav a { color: var(--ink-soft); text-decoration: none; font-size: 14px; margin-left: 24px; }
+  nav a:hover { color: var(--ink); }
+  main { max-width: 880px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow { color: var(--accent-strong); font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 12px; }
+  h1 { font-family: 'Space Grotesk', sans-serif; font-size: 40px; font-weight: 600; line-height: 1.15; margin: 0 0 12px; max-width: 14ch; }
+  .sub { color: var(--ink-soft); font-size: 17px; max-width: 46ch; margin: 0 0 32px; }
+
+  .modes { display: flex; gap: 10px; margin-bottom: 24px; }
+  .mode-btn {
+    flex: 1; background: var(--card); border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; cursor: pointer; text-align: left; font-family: 'Inter', sans-serif;
+  }
+  .mode-btn.active { border-color: var(--accent); background: var(--accent-soft); }
+  .mode-btn .title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .mode-btn .desc { font-size: 12.5px; color: var(--ink-soft); }
+
+  .dropzone { background: var(--card); border: 1.5px dashed var(--line); border-radius: 16px; padding: 56px 24px; text-align: center; cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; }
+  .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: var(--accent-soft); }
+  .dropzone svg { margin-bottom: 16px; color: var(--accent); }
+  .dropzone p { margin: 0; font-weight: 500; }
+  .dropzone span { color: var(--ink-soft); font-size: 14px; }
+  #fileInput { display: none; }
+
+  .result { display: none; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 28px; margin-top: 24px; }
+  .result.show { display: block; }
+  .filename { font-weight: 500; font-size: 15px; margin: 0 0 6px; word-break: break-all; }
+  .status-line { font-size: 13px; color: var(--ink-soft); margin: 0 0 20px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .stat { background: var(--paper); border-radius: 10px; padding: 14px 16px; }
+  .stat .label { font-size: 12px; color: var(--ink-soft); margin: 0 0 4px; }
+  .stat .value { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; margin: 0; }
+  .stat.saved .value { color: var(--accent-strong); }
+  .progress { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; margin-bottom: 20px; display: none; }
+  .progress.show { display: block; }
+  .progress-bar { height: 100%; width: 30%; background: var(--accent); border-radius: 999px; animation: slide 1.1s ease-in-out infinite; }
+  @keyframes slide { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
+  button.download { background: var(--accent); color: #fff; border: none; padding: 12px 22px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; width: 100%; }
+  button.download:hover { background: var(--accent-strong); }
+  button.download:disabled { opacity: 0.5; cursor: not-allowed; }
+  .note { font-size: 13px; color: var(--ink-soft); margin-top: 32px; text-align: center; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--accent-strong); background: var(--accent-soft); padding: 6px 12px; border-radius: 999px; margin-bottom: 24px; }
+  @media (max-width: 560px) { h1 { font-size: 30px; } .stats { grid-template-columns: 1fr; } .modes { flex-direction: column; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+    Nexa
+  </div>
+  <nav>
+    <a href="index.html">Tools</a>
+    <a href="index.html#about">About</a>
+  </nav>
+</header>
+
+<main>
+  <div class="badge">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+    Runs in your browser — files never leave your device
+  </div>
+  <p class="eyebrow">Nexa tools</p>
+  <h1>Compress a PDF in seconds</h1>
+  <p class="sub">Drop a file in, get a smaller one out. No signup, no watermark, no upload to any server.</p>
+
+  <div class="modes">
+    <button class="mode-btn active" id="modeQuality" data-mode="quality">
+      <div class="title">Better quality</div>
+      <div class="desc">Lighter compression, sharper images</div>
+    </button>
+    <button class="mode-btn" id="modeSmall" data-mode="small">
+      <div class="title">Smaller file</div>
+      <div class="desc">Stronger compression, ideal for scans</div>
+    </button>
+  </div>
+
+  <div class="dropzone" id="dropzone">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+    <p>Click to choose a PDF, or drag one here</p>
+    <span>Max 50MB</span>
+    <input type="file" id="fileInput" accept="application/pdf">
+  </div>
+
+  <div class="result" id="result">
+    <p class="filename" id="filename"></p>
+    <p class="status-line" id="statusLine"></p>
+    <div class="progress" id="progress"><div class="progress-bar"></div></div>
+    <div class="stats" id="stats" style="display:none;">
+      <div class="stat"><p class="label">Original</p><p class="value" id="origSize">—</p></div>
+      <div class="stat"><p class="label">Compressed</p><p class="value" id="newSize">—</p></div>
+      <div class="stat saved"><p class="label">Saved</p><p class="value" id="savedPct">—</p></div>
+    </div>
+    <button class="download" id="downloadBtn" disabled>Compress a file first</button>
+  </div>
+
+  <p class="note">Scanned or photo-heavy PDFs compress the most. Text-only PDFs may already be near their smallest size.</p>
+</main>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const result = document.getElementById('result');
+const filenameEl = document.getElementById('filename');
+const statusLine = document.getElementById('statusLine');
+const progress = document.getElementById('progress');
+const stats = document.getElementById('stats');
+const origSizeEl = document.getElementById('origSize');
+const newSizeEl = document.getElementById('newSize');
+const savedPctEl = document.getElementById('savedPct');
+const downloadBtn = document.getElementById('downloadBtn');
+const modeQuality = document.getElementById('modeQuality');
+const modeSmall = document.getElementById('modeSmall');
+
+let mode = 'quality';
+let compressedBytes = null;
+let outputName = 'compressed.pdf';
+
+modeQuality.addEventListener('click', () => setMode('quality'));
+modeSmall.addEventListener('click', () => setMode('small'));
+function setMode(m) {
+  mode = m;
+  modeQuality.classList.toggle('active', m === 'quality');
+  modeSmall.classList.toggle('active', m === 'small');
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files.length) handleFile(e.target.files[0]);
+});
+
+async function handleFile(file) {
+  if (file.type !== 'application/pdf') { alert('Please choose a PDF file.'); return; }
+  if (file.size > 50 * 1024 * 1024) { alert('File is larger than 50MB.'); return; }
+
+  outputName = file.name.replace(/\.pdf$/i, '') + '-compressed.pdf';
+  filenameEl.textContent = file.name;
+  statusLine.textContent = 'Reading file…';
+  result.classList.add('show');
+  stats.style.display = 'none';
+  progress.classList.add('show');
+  downloadBtn.disabled = true;
+  downloadBtn.textContent = 'Compressing…';
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const origSize = file.size;
+
+    // First try the lightweight structural pass
+    statusLine.textContent = 'Trying quick optimization…';
+    const pdfDocLite = await PDFLib.PDFDocument.load(arrayBuffer.slice(0), { updateMetadata: false });
+    const liteBytes = await pdfDocLite.save({ useObjectStreams: true });
+
+    const liteSavings = 1 - (liteBytes.byteLength / origSize);
+
+    let finalBytes;
+
+    if (liteSavings > 0.15) {
+      // Structural cleanup alone was worth it (text-heavy PDF) — use it
+      statusLine.textContent = 'Optimized structure (text-based PDF)';
+      finalBytes = liteBytes;
+    } else {
+      // Likely image-heavy — rasterize and recompress each page,
+      // retrying with progressively stronger settings until it actually shrinks
+      const presets = mode === 'small'
+        ? [{ q: 0.45, s: 1.3 }, { q: 0.35, s: 1.0 }, { q: 0.28, s: 0.8 }]
+        : [{ q: 0.72, s: 1.8 }, { q: 0.55, s: 1.4 }, { q: 0.4, s: 1.1 }, { q: 0.3, s: 0.9 }];
+
+      finalBytes = liteBytes;
+      for (let i = 0; i < presets.length; i++) {
+        statusLine.textContent = `Recompressing images (attempt ${i + 1} of ${presets.length})…`;
+        const attempt = await rasterCompress(arrayBuffer, presets[i].q, presets[i].s);
+        if (attempt.byteLength < finalBytes.byteLength) finalBytes = attempt;
+        if (finalBytes.byteLength < origSize * 0.7) break; // good enough, stop early
+      }
+    }
+
+    // Never return something bigger than the original
+    if (finalBytes.byteLength >= origSize) {
+      finalBytes = new Uint8Array(arrayBuffer);
+      statusLine.textContent = 'This file is already well optimized — little more can be saved.';
+    }
+
+    compressedBytes = finalBytes;
+    const newSize = finalBytes.byteLength;
+    const savedPct = Math.max(0, Math.round((1 - newSize / origSize) * 100));
+
+    origSizeEl.textContent = formatSize(origSize);
+    newSizeEl.textContent = formatSize(newSize);
+    savedPctEl.textContent = savedPct + '%';
+
+    stats.style.display = 'grid';
+    progress.classList.remove('show');
+    downloadBtn.disabled = false;
+    downloadBtn.textContent = 'Download compressed PDF';
+  } catch (err) {
+    progress.classList.remove('show');
+    statusLine.textContent = 'Something went wrong — try another file';
+    downloadBtn.textContent = 'Try another file';
+    console.error(err);
+  }
+}
+
+async function rasterCompress(arrayBuffer, quality, scale) {
+  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer.slice(0) });
+  const pdf = await loadingTask.promise;
+  const newPdf = await PDFLib.PDFDocument.create();
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    statusLine.textContent = `Compressing page ${i} of ${pdf.numPages}…`;
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    const jpegDataUrl = canvas.toDataURL('image/jpeg', quality);
+    const jpegBytes = await (await fetch(jpegDataUrl)).arrayBuffer();
+    const jpegImage = await newPdf.embedJpg(jpegBytes);
+
+    const pdfPage = newPdf.addPage([viewport.width, viewport.height]);
+    pdfPage.drawImage(jpegImage, { x: 0, y: 0, width: viewport.width, height: viewport.height });
+  }
+
+  return await newPdf.save({ useObjectStreams: true });
+}
+
+downloadBtn.addEventListener('click', () => {
+  if (!compressedBytes) return;
+  const blob = new Blob([compressedBytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = outputName;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+
+</body>
+</html>

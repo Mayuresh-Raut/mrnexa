@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PDF compressor — Nexa Tools</title>
-<meta name="description" content="Compress PDF files in your browser, free, no upload to any server, no signup needed.">
+<title>Nexa — free online tools</title>
+<meta name="description" content="Free, fast browser-based tools. Compress PDFs, images, and more — no signup, no upload to any server.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <style>
   :root {
     --ink: #101820;
@@ -43,7 +42,6 @@
     font-weight: 600;
     font-size: 20px;
   }
-  .brand svg { flex-shrink: 0; }
   nav a {
     color: var(--ink-soft);
     text-decoration: none;
@@ -70,7 +68,7 @@
     font-weight: 600;
     line-height: 1.15;
     margin: 0 0 12px;
-    max-width: 14ch;
+    max-width: 16ch;
   }
   .sub {
     color: var(--ink-soft);
@@ -78,116 +76,75 @@
     max-width: 46ch;
     margin: 0 0 40px;
   }
-  .dropzone {
-    background: var(--card);
-    border: 1.5px dashed var(--line);
-    border-radius: 16px;
-    padding: 56px 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
   }
-  .dropzone:hover, .dropzone.drag {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-  }
-  .dropzone svg { margin-bottom: 16px; color: var(--accent); }
-  .dropzone p { margin: 0; font-weight: 500; }
-  .dropzone span { color: var(--ink-soft); font-size: 14px; }
-  #fileInput { display: none; }
-
-  .result {
-    display: none;
+  .card {
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 16px;
-    padding: 28px;
-    margin-top: 24px;
+    padding: 24px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.15s ease, transform 0.15s ease;
   }
-  .result.show { display: block; }
-  .filename {
-    font-weight: 500;
-    font-size: 15px;
-    margin: 0 0 20px;
-    word-break: break-all;
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
   }
-  .stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  .stat {
-    background: var(--paper);
+  .card .icon {
+    width: 40px;
+    height: 40px;
     border-radius: 10px;
-    padding: 14px 16px;
+    background: var(--accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    color: var(--accent-strong);
   }
-  .stat .label {
-    font-size: 12px;
-    color: var(--ink-soft);
-    margin: 0 0 4px;
-  }
-  .stat .value {
+  .card h3 {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 600;
+    margin: 0 0 6px;
+  }
+  .card p {
+    color: var(--ink-soft);
+    font-size: 14px;
     margin: 0;
   }
-  .stat.saved .value { color: var(--accent-strong); }
-  .progress {
-    height: 6px;
-    background: var(--line);
-    border-radius: 999px;
-    overflow: hidden;
-    margin-bottom: 20px;
-    display: none;
+  .card.soon {
+    opacity: 0.55;
+    cursor: default;
   }
-  .progress.show { display: block; }
-  .progress-bar {
-    height: 100%;
-    width: 30%;
-    background: var(--accent);
-    border-radius: 999px;
-    animation: slide 1.1s ease-in-out infinite;
-  }
-  @keyframes slide {
-    0% { margin-left: -30%; }
-    100% { margin-left: 100%; }
-  }
-  button.download {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    padding: 12px 22px;
-    border-radius: 10px;
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    width: 100%;
-  }
-  button.download:hover { background: var(--accent-strong); }
-  button.download:disabled { opacity: 0.5; cursor: not-allowed; }
-  .note {
-    font-size: 13px;
-    color: var(--ink-soft);
-    margin-top: 32px;
-    text-align: center;
+  .card.soon:hover {
+    border-color: var(--line);
+    transform: none;
   }
   .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
     color: var(--accent-strong);
     background: var(--accent-soft);
-    padding: 6px 12px;
+    padding: 3px 8px;
     border-radius: 999px;
-    margin-bottom: 24px;
+    margin-top: 10px;
+  }
+  footer {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px 40px;
+    color: var(--ink-soft);
+    font-size: 13px;
+    text-align: center;
   }
   @media (max-width: 560px) {
     h1 { font-size: 30px; }
-    .stats { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -199,142 +156,48 @@
     Nexa
   </div>
   <nav>
-    <a href="/">Tools</a>
-    <a href="/about.html">About</a>
+    <a href="#tools">Tools</a>
+    <a href="#about">About</a>
   </nav>
 </header>
 
 <main>
-  <div class="badge">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-    Runs in your browser — files never leave your device
-  </div>
   <p class="eyebrow">Nexa tools</p>
-  <h1>Compress a PDF in seconds</h1>
-  <p class="sub">Drop a file in, get a smaller one out. No signup, no watermark, no upload to any server.</p>
+  <h1>Free tools that just work</h1>
+  <p class="sub">No signup, no watermark, no upload to any server — everything runs right in your browser.</p>
 
-  <div class="dropzone" id="dropzone">
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-    <p>Click to choose a PDF, or drag one here</p>
-    <span>Max 50MB</span>
-    <input type="file" id="fileInput" accept="application/pdf">
-  </div>
+  <div class="grid" id="tools">
+    <a href="pdf-compressor.html" class="card">
+      <div class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+      </div>
+      <h3>PDF compressor</h3>
+      <p>Shrink a PDF's file size in seconds</p>
+    </a>
 
-  <div class="result" id="result">
-    <p class="filename" id="filename"></p>
-    <div class="progress" id="progress"><div class="progress-bar"></div></div>
-    <div class="stats" id="stats" style="display:none;">
-      <div class="stat">
-        <p class="label">Original</p>
-        <p class="value" id="origSize">—</p>
+    <div class="card soon">
+      <div class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
       </div>
-      <div class="stat">
-        <p class="label">Compressed</p>
-        <p class="value" id="newSize">—</p>
-      </div>
-      <div class="stat saved">
-        <p class="label">Saved</p>
-        <p class="value" id="savedPct">—</p>
-      </div>
+      <h3>Image compressor</h3>
+      <p>Reduce JPG and PNG file size</p>
+      <span class="badge">Coming soon</span>
     </div>
-    <button class="download" id="downloadBtn" disabled>Compress a file first</button>
-  </div>
 
-  <p class="note">Compression works best on PDFs with embedded fonts, forms, or redundant data. Already-optimized scans may shrink only slightly.</p>
+    <div class="card soon">
+      <div class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="16" y2="10"></line><line x1="8" y1="14" x2="12" y2="14"></line></svg>
+      </div>
+      <h3>EMI calculator</h3>
+      <p>Home, car, and personal loans</p>
+      <span class="badge">Coming soon</span>
+    </div>
+  </div>
 </main>
 
-<script>
-const dropzone = document.getElementById('dropzone');
-const fileInput = document.getElementById('fileInput');
-const result = document.getElementById('result');
-const filenameEl = document.getElementById('filename');
-const progress = document.getElementById('progress');
-const stats = document.getElementById('stats');
-const origSizeEl = document.getElementById('origSize');
-const newSizeEl = document.getElementById('newSize');
-const savedPctEl = document.getElementById('savedPct');
-const downloadBtn = document.getElementById('downloadBtn');
-
-let compressedBytes = null;
-let outputName = 'compressed.pdf';
-
-function formatSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-}
-
-dropzone.addEventListener('click', () => fileInput.click());
-dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-dropzone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropzone.classList.remove('drag');
-  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', e => {
-  if (e.target.files.length) handleFile(e.target.files[0]);
-});
-
-async function handleFile(file) {
-  if (file.type !== 'application/pdf') {
-    alert('Please choose a PDF file.');
-    return;
-  }
-  if (file.size > 50 * 1024 * 1024) {
-    alert('File is larger than 50MB.');
-    return;
-  }
-
-  outputName = file.name.replace(/\.pdf$/i, '') + '-compressed.pdf';
-  filenameEl.textContent = file.name;
-  result.classList.add('show');
-  stats.style.display = 'none';
-  progress.classList.add('show');
-  downloadBtn.disabled = true;
-  downloadBtn.textContent = 'Compressing…';
-
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer, { updateMetadata: false });
-
-    const bytes = await pdfDoc.save({
-      useObjectStreams: true,
-      addDefaultPage: false,
-    });
-
-    compressedBytes = bytes;
-
-    const origSize = file.size;
-    const newSize = bytes.byteLength;
-    const savedPct = Math.max(0, Math.round((1 - newSize / origSize) * 100));
-
-    origSizeEl.textContent = formatSize(origSize);
-    newSizeEl.textContent = formatSize(newSize);
-    savedPctEl.textContent = savedPct + '%';
-
-    stats.style.display = 'grid';
-    progress.classList.remove('show');
-    downloadBtn.disabled = false;
-    downloadBtn.textContent = 'Download compressed PDF';
-  } catch (err) {
-    progress.classList.remove('show');
-    downloadBtn.textContent = 'Something went wrong — try another file';
-    console.error(err);
-  }
-}
-
-downloadBtn.addEventListener('click', () => {
-  if (!compressedBytes) return;
-  const blob = new Blob([compressedBytes], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = outputName;
-  a.click();
-  URL.revokeObjectURL(url);
-});
-</script>
+<footer id="about">
+  Nexa — built to make everyday tasks a little faster. mrnexa.in
+</footer>
 
 </body>
 </html>
